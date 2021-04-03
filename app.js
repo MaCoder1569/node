@@ -1,9 +1,25 @@
 var express = require('express');
 var app = express()
 // var bodyParser = require('body-parser')
+const mariadb = require('mariadb')
+const pool = mariadb.createPool({database:'express',host:'localhost', user:'root',port:3306,password:'qwaszx45', connectionLimit:5})
+
+async function asyncFunction() {
+    let conn;
+    try {
+      conn = await pool.getConnection();
+      const rows = await conn.query("SELECT * from user");
+      console.log(rows)
+    } catch (err) {
+      throw err;
+    } finally {
+      if (conn) conn.release(); //release to pool
+    }
+  }
 
 app.listen(3000,function(){
-    console.log('start!!! express')
+    asyncFunction()
+    console.log('start!! express')
 })
 
 //static 디렉토리 : 위치 등록 시켜 놓으면 스테틱으로 불러온다
