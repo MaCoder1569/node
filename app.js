@@ -1,25 +1,13 @@
 var express = require('express');
 var app = express()
+var main = require('./router/main.js')
+
 // var bodyParser = require('body-parser')
 const mariadb = require('mariadb')
 const pool = mariadb.createPool({database:'express',host:'localhost', user:'root',port:3306,password:'qwaszx45', connectionLimit:5})
 
-async function asyncFunction() {
-    let conn;
-    try {
-      conn = await pool.getConnection();
-      const rows = await conn.query("SELECT * from user");
-      console.log(rows)
-    } catch (err) {
-      throw err;
-    } finally {
-      if (conn) conn.release(); //release to pool
-    }
-  }
-
 app.listen(3000,function(){
-    asyncFunction()
-    console.log('start!! express')
+    console.log('start!!! express')
 })
 
 //static 디렉토리 : 위치 등록 시켜 놓으면 스테틱으로 불러온다
@@ -28,15 +16,13 @@ app.use(express.static('public'))
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
+app.use('/main',main)
+
 app.set('view engine','ejs')
 
 //url routing
 app.get('/', (req,res)=>{
     // res.send("<h1>hi friend!</h1>")
-    res.sendFile(__dirname+"/public/main.html")
-})
-
-app.get('/main', function(req,res){
     res.sendFile(__dirname+"/public/main.html")
 })
 
@@ -47,8 +33,18 @@ app.post('/email_port', (req,res)=>{
     res.render('email.ejs',{'email':req.body.email})
 })
 
-app.post('/ajax_send_email', (req,res)=>{
+app.post('/ajax_send_email', async (req,res)=>{
     console.log(req.body)
-    var responseData = {'result':'ok','email':req.body.email}
+    var email = req.body.email
+    var responseData={}
+    var conn = await pool.getConnection()
+    var rows = await conn.query('select name from user where email="'+email+'"')
+    if(rows[0]){
+        responseData.result = "ok"
+        responseData.name = rows[0].name
+    }else{
+        responseData.result = "fail"
+        responseData.name = ""
+    }
     res.json(responseData)
 })
