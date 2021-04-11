@@ -2,7 +2,7 @@ var express = require('express');
 var app = express()
 
 var router = require('./router/index.js')
-const { route } = require('./router/email.js');
+// const { route } = require('./router/email/email.js');
 
 // var bodyParser = require('body-parser')
 
